@@ -1,0 +1,8 @@
+pandas
+numpy
+loguru
+prefect
+optuna
+psutil
+cyvcf2
+pytest
