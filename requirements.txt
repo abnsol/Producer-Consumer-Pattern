@@ -6,3 +6,9 @@ optuna
 psutil
 cyvcf2
 pytest
+flask
+python-socketio 
+flask-socketio
+
+#For Mock data generation must be removed
+scipy 

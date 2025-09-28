@@ -104,6 +104,10 @@ def initialize_rpy2_for_worker():
 @task
 def run_command(cmd: str) -> subprocess.CompletedProcess:
     """Execute a shell command and handle errors."""
+    # Runs shell commands as a sub-process
+    # raises error in a non zero exits
+    # PLINK/GCTA calls this
+    # other call subprocess run directly not using this helper which might be inconsistent
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
     if result.returncode != 0:
         logger.error(f"Error running command: {cmd}")
@@ -117,6 +121,9 @@ def munge_sumstats_preprocessing(gwas_file_path, output_dir, ref_genome="GRCh37"
     """
     Preprocess GWAS data using R's MungeSumstats package for standardization and QC.
     """
+    # do R mungesumstats::format_sumstats
+    # load & format results in pd dataframe
+    # create ID and save processed TSV
     if not HAS_RPY2:
         logging.error("rpy2 not available for MungeSumstats preprocessing")
         raise RuntimeError("rpy2 not available")
@@ -134,7 +141,7 @@ def munge_sumstats_preprocessing(gwas_file_path, output_dir, ref_genome="GRCh37"
         # Set up conversion context for both import and execution
         with localconverter(default_converter + pandas2ri.converter):
             # Import MungeSumstats within conversion context
-            try:
+            try: 
                 mungesumstats = importr('MungeSumstats')
                 logger.info("[MUNGE] MungeSumstats package loaded successfully")
             except Exception as e:
@@ -163,7 +170,7 @@ def munge_sumstats_preprocessing(gwas_file_path, output_dir, ref_genome="GRCh37"
                 # Fallback: try to clean it manually
                 formatted_file_path = formatted_file_path_raw.strip().replace('[1] "', '').replace('"', '').strip()
         
-        logger.info(f"[MUNGE] MungeSumstats completed. Output: {formatted_file_path}")
+        logger.info(f"[MUNGE] MungeSumstats completed. Output: {formatted_file_path}") 
             
         # Load and post-process the munged data
         logger.info("[MUNGE] Loading and post-processing munged data")
@@ -225,6 +232,7 @@ def run_cojo_per_chromosome(significant_df, plink_dir, output_dir, maf_threshold
     """
     Run GCTA COJO analysis per chromosome and combine results.
     """
+    # run cojo per chromosome to find independent lead variants. 
     logger.info(f"[COJO] Starting per-chromosome COJO analysis for population {population}")
     
     # Create temporary directory for COJO processing
@@ -386,6 +394,15 @@ def check_ld_semidefiniteness(R_df):
 @task(cache_policy=None)
 def finemap_region(seed, sumstats, chr_num, lead_variant_position, window=2000, 
                                  population="EUR", L=-1, coverage=0.95, min_abs_corr=0.5):
+    
+    # filter sumstats to the window
+    # Compute LD via plink2
+    # read LD matrix
+    # convert to numpy 
+    # convert to R
+    # run susieR::susie_rss
+    # extract PIPs and credible sets
+    # DF of credible variants. 
     try:     
         logger.info(f"[FINEMAP] Fine-mapping chr{chr_num}:{lead_variant_position} ±{window}kb")
         
@@ -785,6 +802,12 @@ def create_region_batches(cojo_results, batch_size=3):
     return batches
 
 def finemap_region_batch_worker(batch_data):
+    #load sumstats from temp TSV
+    # intializes a dedicated rpy2 conversion context
+    # import susie R
+    # for each region call finemap_region
+    # save credible sets to DB
+    # clean up R obj and python garbage.
 
     # Unpack the batch_data tuple
     if len(batch_data) == 3:
