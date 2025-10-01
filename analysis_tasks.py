@@ -139,7 +139,7 @@ def munge_sumstats_preprocessing(gwas_file_path, output_dir, ref_genome="GRCh37"
         # Set up conversion context for both import and execution
         with localconverter(default_converter + pandas2ri.converter):
             # Import MungeSumstats within conversion context
-            try:
+            try: 
                 mungesumstats = importr('MungeSumstats')
                 logger.info("[MUNGE] MungeSumstats package loaded successfully")
             except Exception as e:
@@ -168,7 +168,7 @@ def munge_sumstats_preprocessing(gwas_file_path, output_dir, ref_genome="GRCh37"
                 # Fallback: try to clean it manually
                 formatted_file_path = formatted_file_path_raw.strip().replace('[1] "', '').replace('"', '').strip()
         
-        logger.info(f"[MUNGE] MungeSumstats completed. Output: {formatted_file_path}")
+        logger.info(f"[MUNGE] MungeSumstats completed. Output: {formatted_file_path}") 
             
         # Load and post-process the munged data
         logger.info("[MUNGE] Loading and post-processing munged data")
@@ -230,6 +230,7 @@ def run_cojo_per_chromosome(significant_df, plink_dir, output_dir, maf_threshold
     """
     Run GCTA COJO analysis per chromosome and combine results.
     """
+    # run cojo per chromosome to find independent lead variants. 
     logger.info(f"[COJO] Starting per-chromosome COJO analysis for population {population}")
     
     # Create temporary directory for COJO processing
